@@ -3,9 +3,27 @@ const getNumber = async (req, res) => {
 	const urls = Array.isArray(urlParams) ? urlParams : [urlParams];
 	const result = [];
 	urls.forEach(async (url) => {
-		result = [...result, await fetchNumbers(url)];
+		if (isValid(url)) {
+			const numbers = await fetchNumbers(url);
+			result.concat(numbers);
+		}
 	});
-	res.send(result);
+
+	const uniqueNumbers = [...new Set(result)];
+	uniqueNumbers.sort();
+
+	res.send({ numbers: uniqueNumbers });
+};
+
+const validEndPoints = ["primes", "fibo", "odd", "rand"];
+const isValid = (url) => {
+	const index = url.lastIndexOf("/");
+	const firstPart = url.substring(0, index);
+	const secondPart = url.substring(index + 1);
+	return (
+		firstPart === "http://localhost:8090" &&
+		validEndPoints.includes(secondPart)
+	);
 };
 
 const fetchNumbers = async (url) => {
@@ -17,16 +35,6 @@ const fetchNumbers = async (url) => {
 	} catch (error) {
 		return [];
 	}
-};
-
-const isValidURL = (urlString) => {
-	let url;
-	try {
-		url = new URL(url);
-	} catch (error) {
-		return false;
-	}
-	return true;
 };
 
 module.exports = {
